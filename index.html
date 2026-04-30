@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Male Player Demo</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Import Map: The modern way to handle Three.js modules -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="ui-panel" class="glass-panel">
+    <button id="runBtn">Run (R)</button>
+    <button id="jumpBtn">Jump (J)</button>
+    <button id="kickBtn">Kick (K)</button>
+    <button id="punchBtn">Punch (P)</button>
+    <span id="currentAction">Idle</span>
+  </div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
