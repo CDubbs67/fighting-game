@@ -33,4 +33,9 @@ export class AnimationController {
     next.reset().fadeIn(0.2).play();
     this.currentAction = next;
   }
+
+  isActionPlaying(name) {
+    const action = this.actions[name];
+    return action && action.isRunning();
+  }
 }

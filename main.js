@@ -93,7 +93,13 @@ const curAction = document.getElementById('currentAction');
 
 let currentActionName = 'idle';
 function setAction(name) {
-  if (currentActionName === name && name !== 'punch') return; // Allow punch to restart
+  // Protect 'punch' from being interrupted until it's finished
+  if (currentActionName === 'punch' && animCtrl.isActionPlaying('punch')) {
+    return; // Ignore new inputs while punching to prevent cutting it off
+  }
+
+  if (currentActionName === name) return;
+  
   animCtrl.play(name);
   currentActionName = name;
   curAction.textContent = name.charAt(0).toUpperCase() + name.slice(1);
@@ -120,6 +126,12 @@ window.addEventListener('resize', () => {
 // Keyboard shortcuts (additional)
 window.addEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 'p') setAction('punch');
+});
+
+// Reset action state when a one-shot animation finishes
+character.mixer.addEventListener('finished', (e) => {
+  currentActionName = 'idle';
+  curAction.textContent = 'Idle';
 });
 
 // Animation loop
