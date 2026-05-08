@@ -10,11 +10,16 @@ export class AnimationController {
 
     for (const name in clips) {
       this.actions[name] = this.mixer.clipAction(clips[name]);
-      if (name !== 'run') {
+      if (name !== 'run' && name !== 'idle') {
         this.actions[name].setLoop(THREE.LoopOnce, 1);
-        this.actions[name].clampWhenFinished = true;
+        this.actions[name].clampWhenFinished = false; // Don't clamp, we want to transition back
       }
     }
+
+    // Auto-return to idle when a one-shot animation finishes
+    this.mixer.addEventListener('finished', (e) => {
+      this.play('idle');
+    });
   }
 
   play(name) {
