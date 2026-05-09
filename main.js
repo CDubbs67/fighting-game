@@ -149,7 +149,10 @@ function renderSkinsList() {
   skinsList.innerHTML = '';
   ownedSkins.forEach(skinId => {
     const btn = document.createElement('button');
-    btn.textContent = skinId.charAt(0).toUpperCase() + skinId.slice(1);
+    let displayName = skinId.charAt(0).toUpperCase() + skinId.slice(1);
+    if (skinId === 'gold') displayName = 'Golden Lord';
+    
+    btn.textContent = displayName;
     btn.onclick = () => { character.setSkin(skinId); closeModal('skins-modal'); };
     skinsList.appendChild(btn);
   });
@@ -159,10 +162,24 @@ function renderWeaponsList() {
   weaponsList.innerHTML = '';
   ownedWeapons.forEach(weaponId => {
     const btn = document.createElement('button');
-    btn.textContent = weaponId.charAt(0).toUpperCase() + weaponId.slice(1);
+    let displayName = weaponId.charAt(0).toUpperCase() + weaponId.slice(1);
+    if (weaponId === 'gold_sword') displayName = 'Golden Sword';
+    if (weaponId === 'gold_glove') displayName = 'Golden Glove';
+    
+    btn.textContent = displayName;
     btn.onclick = () => { character.setWeapon(weaponId); closeModal('weapons-modal'); };
     weaponsList.appendChild(btn);
   });
+}
+
+function markAsOwned(id) {
+  const btnId = `buy${id.charAt(0).toUpperCase() + id.slice(1)}Btn`;
+  const buyBtn = document.getElementById(btnId);
+  if (buyBtn) {
+    buyBtn.textContent = "Owned";
+    buyBtn.disabled = true;
+    buyBtn.style.opacity = "0.5";
+  }
 }
 
 window.buyItem = (type, id, price) => {
@@ -176,11 +193,47 @@ window.buyItem = (type, id, price) => {
     collection.push(id);
     updateUI();
     alert(`Purchased ${id}!`);
-    const buyBtn = document.getElementById(`buy${id.charAt(0).toUpperCase() + id.slice(1)}Btn`);
-    if (buyBtn) {
-      buyBtn.textContent = "Owned";
-      buyBtn.disabled = true;
-      buyBtn.style.opacity = "0.5";
+    markAsOwned(id);
+  } else {
+    alert("Not enough coins!");
+  }
+};
+
+window.buyPack = (packId, price) => {
+  if (coins >= price) {
+    coins -= price;
+    let items = [];
+    if (packId === 'gold') {
+      items = [
+        { type: 'skin', id: 'gold' },
+        { type: 'weapon', id: 'gold_sword' },
+        { type: 'weapon', id: 'gold_glove' }
+      ];
+    } else if (packId === 'matrix') {
+      items = [
+        { type: 'skin', id: 'matrix' },
+        { type: 'weapon', id: 'sword' },
+        { type: 'weapon', id: 'glove' }
+      ];
+    }
+
+    items.forEach(item => {
+      const collection = item.type === 'skin' ? ownedSkins : ownedWeapons;
+      if (!collection.includes(item.id)) {
+        collection.push(item.id);
+      }
+      markAsOwned(item.id);
+    });
+
+    updateUI();
+    alert(`Purchased ${packId.toUpperCase()} Pack!`);
+    
+    // Mark the pack itself as owned
+    const packBtn = document.getElementById(`buyPack${packId.charAt(0).toUpperCase() + packId.slice(1)}Btn`);
+    if (packBtn) {
+      packBtn.textContent = "Owned";
+      packBtn.disabled = true;
+      packBtn.style.opacity = "0.5";
     }
   } else {
     alert("Not enough coins!");

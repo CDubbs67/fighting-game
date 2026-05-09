@@ -45,6 +45,13 @@ export class Character {
       `
     });
 
+    // Gold Material
+    this.goldMat = new THREE.MeshStandardMaterial({ 
+      color: 0xffd700, 
+      metalness: 1.0, 
+      roughness: 0.1 
+    });
+
     this.mesh = this._createSkinnedMesh();
     this.mixer = new THREE.AnimationMixer(this.mesh);
     this.clips = this._createClips();
@@ -72,13 +79,14 @@ export class Character {
     const bones = this._getAllBones(this.boneStructure);
     const rHand = bones.find(b => b.name === 'rLowerArm'); // Attach to lower arm/hand area
 
-    if (id === 'sword') {
+    if (id === 'sword' || id === 'gold_sword') {
       const swordGroup = new THREE.Group();
+      const mat = id === 'gold_sword' ? this.goldMat : this.matrixMat;
       
       // Huge Round Blade (Cylinder)
       const blade = new THREE.Mesh(
         new THREE.CylinderGeometry(0.08, 0.08, 1.5, 16),
-        this.matrixMat
+        mat
       );
       blade.position.y = 0.75;
       swordGroup.add(blade);
@@ -86,7 +94,7 @@ export class Character {
       // Rounded Guard (Sphere)
       const guard = new THREE.Mesh(
         new THREE.SphereGeometry(0.15, 16, 16),
-        this.matrixMat
+        mat
       );
       guard.position.y = 0.1;
       swordGroup.add(guard);
@@ -103,11 +111,12 @@ export class Character {
       rHand.add(swordGroup);
       this.weaponMesh = swordGroup;
     } 
-    else if (id === 'glove') {
+    else if (id === 'glove' || id === 'gold_glove') {
+      const mat = id === 'gold_glove' ? this.goldMat : this.matrixMat;
       // Rounded Glove (Capsule)
       const glove = new THREE.Mesh(
         new THREE.CapsuleGeometry(0.18, 0.25, 4, 8),
-        this.matrixMat
+        mat
       );
       glove.position.set(0, -0.4, 0);
       rHand.add(glove);
@@ -118,8 +127,16 @@ export class Character {
   }
 
   setSkin(type) {
-    const mat = type === 'matrix' ? this.matrixMat : this.defaultMat;
+    let mat = this.defaultMat;
+    if (type === 'matrix') mat = this.matrixMat;
+    if (type === 'gold') mat = this.goldMat;
+    
     this.bodyMeshes.forEach(mesh => { mesh.material = mat; });
+    
+    // Toggle Wings visibility
+    if (this.wings) {
+      this.wings.visible = (type === 'gold');
+    }
   }
 
   update(delta) {
@@ -233,6 +250,26 @@ export class Character {
     const rLowerArm = addBodyPart(new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.45, 4, 8), bodyMat));
     rLowerArm.position.set(0, -0.2, 0);
     find('rLowerArm').add(rLowerArm);
+
+    // ---- Wings (for Gold Skin) ----
+    const wingsGroup = new THREE.Group();
+    const wingMat = this.goldMat;
+    
+    // Left Wing
+    const lWing = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.02), wingMat);
+    lWing.position.set(0.35, 0.2, -0.15);
+    lWing.rotation.set(0, -0.5, 0.3);
+    wingsGroup.add(lWing);
+    
+    // Right Wing
+    const rWing = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.02), wingMat);
+    rWing.position.set(-0.35, 0.2, -0.15);
+    rWing.rotation.set(0, 0.5, -0.3);
+    wingsGroup.add(rWing);
+    
+    wingsGroup.visible = false;
+    this.wings = wingsGroup;
+    find('spine').add(wingsGroup);
 
     group.add(this.boneStructure);
     return group;
