@@ -37,17 +37,17 @@ function createGrassTexture() {
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
-  
+
   const divisions = 8;
   const squareSize = size / divisions;
-  
+
   for (let y = 0; y < divisions; y++) {
     for (let x = 0; x < divisions; x++) {
       ctx.fillStyle = (x + y) % 2 === 0 ? '#2d5a27' : '#3a7d32'; // Dark and light grass greens
       ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
     }
   }
-  
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
@@ -56,8 +56,8 @@ function createGrassTexture() {
 }
 
 const groundGeo = new THREE.PlaneGeometry(100, 100);
-const groundMat = new THREE.MeshStandardMaterial({ 
-  map: createGrassTexture(), 
+const groundMat = new THREE.MeshStandardMaterial({
+  map: createGrassTexture(),
   roughness: 0.8,
   metalness: 0.1
 });
@@ -86,34 +86,119 @@ window.addEventListener('keyup', (e) => {
   if (keys.hasOwnProperty(key)) keys[key] = false;
 });
 
-// UI Buttons
+// UI Elements
 const btnRun = document.getElementById('runBtn');
 const btnPunch = document.getElementById('punchBtn');
+const btnSkins = document.getElementById('skinsBtn');
+const btnWeapons = document.getElementById('weaponsBtn');
+const btnShop = document.getElementById('shopBtn');
+const skinsModal = document.getElementById('skins-modal');
+const weaponsModal = document.getElementById('weapons-modal');
+const shopModal = document.getElementById('shop-modal');
+const coinsDisplay = document.getElementById('coins-display');
+const skinsList = document.getElementById('skins-list');
+const weaponsList = document.getElementById('weapons-list');
 const curAction = document.getElementById('currentAction');
 
+// Game State
+let coins = 700;
+let ownedSkins = ['default'];
+let ownedWeapons = ['none'];
 let currentActionName = 'idle';
+
+function updateUI() {
+  coinsDisplay.textContent = `Coins: ${coins}`;
+}
+
 function setAction(name) {
-  // Protect 'punch' from being interrupted until it's finished
-  if (currentActionName === 'punch' && animCtrl.isActionPlaying('punch')) {
-    return; // Ignore new inputs while punching to prevent cutting it off
+  // If we have a sword, 'punch' becomes 'swing'
+  let targetAction = name;
+  if (name === 'punch' && character.currentWeaponId === 'sword') {
+    targetAction = 'swing';
   }
 
-  if (currentActionName === name) return;
-  
-  animCtrl.play(name);
-  currentActionName = name;
-  curAction.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  if (currentActionName === targetAction && animCtrl.isActionPlaying(targetAction)) return;
+
+  // Protect complex animations
+  if ((currentActionName === 'punch' || currentActionName === 'swing') && animCtrl.isActionPlaying(currentActionName)) {
+    return;
+  }
+
+  animCtrl.play(targetAction);
+  currentActionName = targetAction;
+  curAction.textContent = targetAction.charAt(0).toUpperCase() + targetAction.slice(1);
+
+  // Earn coins on attack
+  if (name === 'punch') {
+    coins += 10;
+    updateUI();
+  }
 }
+
+// Modal Handlers
+btnSkins.onclick = () => { renderSkinsList(); skinsModal.style.display = 'block'; };
+btnWeapons.onclick = () => { renderWeaponsList(); weaponsModal.style.display = 'block'; };
+btnShop.onclick = () => { shopModal.style.display = 'block'; };
+
+window.closeModal = (id) => {
+  document.getElementById(id).style.display = 'none';
+};
+
+// Skin/Weapon Rendering
+function renderSkinsList() {
+  skinsList.innerHTML = '';
+  ownedSkins.forEach(skinId => {
+    const btn = document.createElement('button');
+    btn.textContent = skinId.charAt(0).toUpperCase() + skinId.slice(1);
+    btn.onclick = () => { character.setSkin(skinId); closeModal('skins-modal'); };
+    skinsList.appendChild(btn);
+  });
+}
+
+function renderWeaponsList() {
+  weaponsList.innerHTML = '';
+  ownedWeapons.forEach(weaponId => {
+    const btn = document.createElement('button');
+    btn.textContent = weaponId.charAt(0).toUpperCase() + weaponId.slice(1);
+    btn.onclick = () => { character.setWeapon(weaponId); closeModal('weapons-modal'); };
+    weaponsList.appendChild(btn);
+  });
+}
+
+window.buyItem = (type, id, price) => {
+  const collection = type === 'skin' ? ownedSkins : ownedWeapons;
+  if (collection.includes(id)) {
+    alert("You already own this!");
+    return;
+  }
+  if (coins >= price) {
+    coins -= price;
+    collection.push(id);
+    updateUI();
+    alert(`Purchased ${id}!`);
+    const buyBtn = document.getElementById(`buy${id.charAt(0).toUpperCase() + id.slice(1)}Btn`);
+    if (buyBtn) {
+      buyBtn.textContent = "Owned";
+      buyBtn.disabled = true;
+      buyBtn.style.opacity = "0.5";
+    }
+  } else {
+    alert("Not enough coins!");
+  }
+};
 
 // Start with idle
 setAction('idle');
+updateUI();
 
 btnRun.onclick = () => setAction('run');
 btnPunch.onclick = () => setAction('punch');
 
-// Mouse click to punch
+// Mouse click to punch/swing
 window.addEventListener('mousedown', (e) => {
-  if (e.button === 0) setAction('punch'); // Left click
+  if (e.target === renderer.domElement && e.button === 0) {
+    setAction('punch');
+  }
 });
 
 // Resize handling
@@ -140,7 +225,7 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
-  
+
   // Movement logic
   let xInput = 0;
   let zInput = 0;
@@ -166,14 +251,14 @@ function animate() {
     moveDir.normalize();
 
     character.mesh.position.add(moveDir.multiplyScalar(moveSpeed * delta));
-    
+
     const targetAngle = Math.atan2(moveDir.x, moveDir.z);
     let currentRotation = character.mesh.rotation.y;
     let diff = targetAngle - currentRotation;
     while (diff < -Math.PI) diff += Math.PI * 2;
     while (diff > Math.PI) diff -= Math.PI * 2;
     character.mesh.rotation.y += diff * 0.15;
-    
+
     setAction('run');
   } else {
     // Only auto-switch to idle if we were previously running
@@ -182,12 +267,12 @@ function animate() {
     }
   }
 
-  character.mixer.update(delta);
-  
+  character.update(delta);
+
   // Update camera target to follow character
   controls.target.lerp(new THREE.Vector3(character.mesh.position.x, 1.5, character.mesh.position.z), 0.1);
   controls.update();
-  
+
   renderer.render(scene, camera);
 }
 

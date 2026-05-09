@@ -19,7 +19,46 @@
   <div id="ui-panel" class="glass-panel">
     <button id="runBtn">Run (R)</button>
     <button id="punchBtn">Punch (P)</button>
+    <button id="skinsBtn">Skins</button>
+    <button id="weaponsBtn">Weapons</button>
+    <button id="shopBtn">Shop</button>
+    <span id="coins-display">Coins: 0</span>
     <span id="currentAction">Idle</span>
+  </div>
+
+  <div id="skins-modal" class="modal glass-panel" style="display: none;">
+    <h3>Select Skin</h3>
+    <div id="skins-list" class="skin-options">
+      <!-- Dynamically populated -->
+    </div>
+    <button onclick="closeModal('skins-modal')">Close</button>
+  </div>
+
+  <div id="weapons-modal" class="modal glass-panel" style="display: none;">
+    <h3>Your Weapons</h3>
+    <div id="weapons-list" class="skin-options">
+      <!-- Dynamically populated -->
+    </div>
+    <button onclick="closeModal('weapons-modal')">Close</button>
+  </div>
+
+  <div id="shop-modal" class="modal glass-panel" style="display: none;">
+    <h3>Upgrade Shop</h3>
+    <div class="shop-items">
+      <div class="shop-item">
+        <span>Matrix Skin</span>
+        <button id="buyMatrixBtn" onclick="buyItem('skin', 'matrix', 100)">Buy (100 Coins)</button>
+      </div>
+      <div class="shop-item">
+        <span>Matrix Sword</span>
+        <button id="buySwordBtn" onclick="buyItem('weapon', 'sword', 200)">Buy (200 Coins)</button>
+      </div>
+      <div class="shop-item">
+        <span>Matrix Glove</span>
+        <button id="buyGloveBtn" onclick="buyItem('weapon', 'glove', 150)">Buy (150 Coins)</button>
+      </div>
+    </div>
+    <button onclick="closeModal('shop-modal')">Close</button>
   </div>
   <script type="module" src="main.js"></script>
 </body>

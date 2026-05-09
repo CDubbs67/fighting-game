@@ -44,8 +44,77 @@ canvas { display: block; }
 
 .glass-panel button:active { transform: translateY(0); }
 
+#coins-display {
+  margin-left: 1rem;
+  font-weight: bold;
+  color: #ffd700; /* Gold */
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
 #currentAction {
   margin-left: 1rem;
   font-weight: 500;
   color: hsl(30, 80%, 70%);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  min-width: 320px;
+  text-align: center;
+  background: rgba(10, 10, 10, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.shop-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.shop-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.shop-item span {
+  font-weight: bold;
+  color: #fff;
+}
+
+.skin-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.skin-options button {
+  width: 100%;
+  background: linear-gradient(135deg, hsl(200, 70%, 45%), hsl(220, 80%, 55%));
+  border: none;
+  color: #fff;
+  padding: 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#closeSkinsBtn, button[onclick^="closeModal"] {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
 }
